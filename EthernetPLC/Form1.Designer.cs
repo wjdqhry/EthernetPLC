@@ -33,7 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.ConnBtn = new System.Windows.Forms.Button();
-            this.SelectSignal = new System.Windows.Forms.ComboBox();
+            this.SignalSelect = new System.Windows.Forms.ComboBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
@@ -87,28 +87,28 @@
             this.ConnBtn.UseVisualStyleBackColor = true;
             this.ConnBtn.Click += new System.EventHandler(this.button1_Click);
             // 
-            // SelectSignal
+            // SignalSelect
             // 
-            this.SelectSignal.Font = new System.Drawing.Font("맑은 고딕", 12F);
-            this.SelectSignal.FormattingEnabled = true;
-            this.SelectSignal.Location = new System.Drawing.Point(80, 111);
-            this.SelectSignal.Name = "SelectSignal";
-            this.SelectSignal.Size = new System.Drawing.Size(125, 36);
-            this.SelectSignal.TabIndex = 5;
+            this.SignalSelect.Font = new System.Drawing.Font("맑은 고딕", 12F);
+            this.SignalSelect.FormattingEnabled = true;
+            this.SignalSelect.Location = new System.Drawing.Point(80, 111);
+            this.SignalSelect.Name = "SignalSelect";
+            this.SignalSelect.Size = new System.Drawing.Size(125, 36);
+            this.SignalSelect.TabIndex = 5;
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(320, 241);
+            this.textBox1.Location = new System.Drawing.Point(27, 218);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(507, 322);
+            this.textBox1.Size = new System.Drawing.Size(526, 322);
             this.textBox1.TabIndex = 6;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("맑은 고딕", 14F);
-            this.label3.Location = new System.Drawing.Point(314, 206);
+            this.label3.Location = new System.Drawing.Point(21, 183);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(63, 32);
             this.label3.TabIndex = 7;
@@ -133,17 +133,18 @@
             this.SendBtn.TabIndex = 9;
             this.SendBtn.Text = "SEND";
             this.SendBtn.UseVisualStyleBackColor = true;
+            this.SendBtn.Click += new System.EventHandler(this.SendBtn_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(839, 642);
+            this.ClientSize = new System.Drawing.Size(574, 550);
             this.Controls.Add(this.SendBtn);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.SelectSignal);
+            this.Controls.Add(this.SignalSelect);
             this.Controls.Add(this.ConnBtn);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -163,7 +164,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button ConnBtn;
-        private System.Windows.Forms.ComboBox SelectSignal;
+        private System.Windows.Forms.ComboBox SignalSelect;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;

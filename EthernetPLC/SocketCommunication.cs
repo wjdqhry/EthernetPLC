@@ -12,10 +12,11 @@ namespace EthernetPLC
 {
     class SocketCommunication : IDisposable
     {
-        private TcpClient Sock = new TcpClient();
+        private Socket Sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private Thread ReceiveThread;
         private IPEndPoint Ipep;
         private ManualResetEvent mManualResetEvent;
+        private byte mAddress = 0;
 
         bool running = false;
         
@@ -25,8 +26,8 @@ namespace EthernetPLC
             {
                 Sock.Connect(address, port);
 
-                running = true;
-                mManualResetEvent.Reset();
+                //running = true;
+                //mManualResetEvent.Reset();
                 //ReceiveThread = new Thread(Receiving);
                 //ReceiveThread.Start();
             }
@@ -45,16 +46,97 @@ namespace EthernetPLC
             }
         }
 
-        private void ReceiveData()
+        private string ReceiveData(string command)
         {
+            StringBuilder tRecvBuilder = new StringBuilder();
+            string tRcvdStr = "";
+            do
+            {
+                byte[] tRecvBuffer = new byte[1024];
+                int tReadLength = Sock.Receive(tRecvBuffer, tRecvBuffer.Length, SocketFlags.None);
 
+                byte[] trueBuffer = new byte[tReadLength];
+                Array.Copy(tRecvBuffer, trueBuffer, trueBuffer.Length);
+
+                if (tReadLength == 0)
+                {
+                    return null;
+                }
+
+                tRcvdStr += (Encoding.ASCII.GetString(trueBuffer).TrimEnd((char)0x00));
+                tRecvBuilder.Append(Encoding.ASCII.GetString(trueBuffer).TrimEnd((char)0x00));
+            }
+            while (!ParseRecvBuffer(command, ref tRecvBuilder));
+            //// 받았으면 다시 보내기 모드가 된다.
+            //NEXT_PLC_STEP = PLC_STEP.SEND_PING;
+            return tRcvdStr;
         }
+
+        public bool GetSoketState() => Sock.Connected;
+
         private void SendData(string command)
         {
+            byte[] tSendBuffer = CreateSendPacket(mAddress, command);
+            Sock.Send(tSendBuffer);
+            Console.WriteLine("PLC_SEND (DATA) : " + Encoding.ASCII.GetString(tSendBuffer));
+        }
+        public string SendAndReceive(string command)
+        {
+            SendData(command);
+            string msg = ReceiveData(command);
+            return msg;
+        }
+        private byte[] CreateSendPacket(byte pTargetAddress, string pInput) =>
+            new CScriptCommand(pTargetAddress).SetCommand(pInput);
 
+        bool ParseRecvBuffer(String pCmd, ref StringBuilder pRecvList)
+        {
+            if (pRecvList.Length == 0)
+                return false;
+
+            if (pRecvList[0] != (byte)PacketEnum.PLCCode.ACK &&
+                pRecvList[0] != (byte)PacketEnum.PLCCode.NAK)
+            {
+                pRecvList.Clear();
+                return false;
+            }
+
+            int tPacketEndIndex = pRecvList.ToString().IndexOf((char)PacketEnum.PLCCode.ETX);
+            if (tPacketEndIndex == -1)   // ETX 신호를 못 받은 경우 : 데이터가 부족한 경우
+                return false;
+
+
+            string tPacketStr = pRecvList.ToString(0, tPacketEndIndex + 1).TrimEnd((char)0x00);
+            CPLCPacket cPLCPacket = new CPLCPacket(Encoding.ASCII.GetBytes(tPacketStr));
+
+            // ACK 데이터 처리
+            if (pRecvList[0] == (byte)PacketEnum.PLCCode.ACK)
+            {
+                byte[] tACKData = cPLCPacket.GetACKData();
+                if (tACKData != null)
+                {
+                    string tACKStr = Encoding.ASCII.GetString(tACKData);
+                    /* JDLib.JDLog.ErrorLog(tACKStr); */  //PLC 로그는 뺴자...
+                }
+            }
+
+            // NAK 에러 메세지 처리
+            else if (pRecvList[0] == (byte)PacketEnum.PLCCode.NAK)
+            {
+                ushort tErrorCode = cPLCPacket.GetNAKErrorCode();
+
+                Console.WriteLine("NAK ERROR : " + tErrorCode.ToString());
+            }
+            //JDLib.JDLog.InfoLog("PLC_RECV (PONG) : " + tPacketStr);
+            else Console.WriteLine("PLC_RECV (DATA) : " + tPacketStr);
+            pRecvList.Remove(0, tPacketEndIndex + 1);
+
+            return true;
         }
         #region IDisposable Support
         private bool disposedValue = false; // 중복 호출을 검색하려면
+
+        
 
         protected virtual void Dispose(bool disposing)
         {
